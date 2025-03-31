@@ -18,9 +18,38 @@ This project automates ORE cryptocurrency mining using Docker containers for eas
    
    Make sure to fund this wallet with SOL for mining operations.
 
-2. **Place the keypair file**
+2. **Solanaキーペアファイル（id.json）の準備**
 
-   Copy your `id.json` file to the same directory as the Dockerfile.
+   マイニングを開始するには、Solanaウォレットのキーペアファイル（`id.json`）が必要です。
+   
+   **id.jsonファイルの取得方法**:
+   ```bash
+   # 新しいSolanaキーペアを生成
+   solana-keygen new --outfile id.json
+   
+   # 生成されたウォレットアドレスを確認
+   solana address -k id.json
+   ```
+   
+   **必要な資金**:
+   - マイニングを行うには、ウォレットに最低0.005 SOLが必要です
+   - 継続的な運用のためには0.1 SOL以上を推奨します
+   
+   **SOLの入金方法**:
+   ```bash
+   # Devnetで開発している場合（本番環境では使用できません）
+   solana airdrop 1 <YOUR_WALLET_ADDRESS> --url https://api.devnet.solana.com
+   
+   # 残高確認
+   solana balance -k id.json
+   ```
+   
+   生成した`id.json`ファイルをDockerfileと同じディレクトリに配置してください。
+   
+   **セキュリティに関する重要な注意**: 
+   - `id.json` ファイルは `.gitignore` に追加されており、GitHubにはプッシュされません
+   - **絶対に** 秘密鍵をパブリックリポジトリにプッシュしないでください
+   - このファイルは秘密鍵を含むため、厳重に管理してください
 
 3. **Run the setup script**
 
@@ -90,6 +119,12 @@ To make the mining container start automatically when your system boots:
    sudo systemctl enable ore-miner.service
    sudo systemctl start ore-miner.service
    ```
+
+## Useful Links
+
+- **Official Website**: [ore.supply](https://ore.supply/)
+- **Token Information**: [DEX Screener - ORE/SOL](https://dexscreener.com/solana/ggadtfbqdgjozz3fp7zrtofgwnrs4e6mczmmd5ni1)
+- **Discord Community**: Join the Discord for support and updates
 
 ## Troubleshooting
 
