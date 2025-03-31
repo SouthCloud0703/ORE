@@ -1,101 +1,105 @@
 # Dockerized ORE Mining
 
-This project automates ORE cryptocurrency mining using Docker containers for easy setup and management.
+このプロジェクトはORE暗号通貨のマイニングをDockerコンテナを使って自動化します。
 
-## Prerequisites
+## 前提条件
 
-- Docker and Docker Compose
-- A Solana keypair funded with SOL
+- Docker と Docker Compose
+- SOLが入金されたSolanaキーペア
 
-## Setup Instructions
+## ORE Mining Mechanism
 
-1. **Prepare your Solana keypair**
+ORE暗号通貨は独自のマイニングと報酬メカニズムを使用しています：
 
-   If you don't have a Solana keypair, create one:
+1. **マイニングプロセス**:
+   - マイナーはハッシュ計算結果を約1分に1回提出します
+   - 報酬はハッシュの難易度に基づいて計算されます（より多くの先頭ゼロ = より高い報酬）
+   - 報酬はブロックチェーン上の「proofアカウント」に蓄積されます
+
+2. **報酬の受け取り**:
+   - 報酬は自動的にウォレットに反映されません
+   - `ore claim`コマンドを使用して蓄積された報酬を請求する必要があります
+   - 当Dockerセットアップでは1時間ごとに自動的に報酬を請求します
+
+3. **タイミングに関する考慮事項**:
+   - ハッシュ提出は約1分に1回に制限されています
+   - 遅延提出（時間枠を超えた場合）は減額された報酬を受け取ります
+   - プロトコルはネットワークのハッシュパワーに基づいて報酬率を調整します
+
+## セットアップ手順
+
+1. **Solanaキーペアの準備**
+
+   Solanaキーペアがない場合は、新しく作成してください：
    ```bash
    solana-keygen new --outfile id.json
    ```
    
-   Make sure to fund this wallet with SOL for mining operations.
+   このウォレットには、マイニング操作用にSOLを入金してください。
 
-2. **Solanaキーペアファイル（id.json）の準備**
+2. **キーペアファイルの配置**
 
-   マイニングを開始するには、Solanaウォレットのキーペアファイル（`id.json`）が必要です。
-   
-   **id.jsonファイルの取得方法**:
-   ```bash
-   # 新しいSolanaキーペアを生成
-   solana-keygen new --outfile id.json
-   
-   # 生成されたウォレットアドレスを確認
-   solana address -k id.json
-   ```
-   
-   **必要な資金**:
-   - マイニングを行うには、ウォレットに最低0.005 SOLが必要です
-   - 継続的な運用のためには0.1 SOL以上を推奨します
-   
-   **SOLの入金方法**:
-   ```bash
-   # Devnetで開発している場合（本番環境では使用できません）
-   solana airdrop 1 <YOUR_WALLET_ADDRESS> --url https://api.devnet.solana.com
-   
-   # 残高確認
-   solana balance -k id.json
-   ```
-   
-   生成した`id.json`ファイルをDockerfileと同じディレクトリに配置してください。
+   生成したid.jsonファイルをDockerfileと同じディレクトリに配置します。
    
    **セキュリティに関する重要な注意**: 
    - `id.json` ファイルは `.gitignore` に追加されており、GitHubにはプッシュされません
    - **絶対に** 秘密鍵をパブリックリポジトリにプッシュしないでください
-   - このファイルは秘密鍵を含むため、厳重に管理してください
 
-3. **Run the setup script**
+3. **セットアップスクリプトの実行**
 
    ```bash
    chmod +x setup.sh
    ./setup.sh
    ```
 
-   This script will:
-   - Check if Docker is installed and install it if needed
-   - Check if Docker Compose is installed and install it if needed
-   - Verify that your Solana keypair exists
-   - Build and start the ORE mining container
+   このスクリプトは以下を行います：
+   - Dockerがインストールされているか確認し、必要に応じてインストール
+   - Docker Composeがインストールされているか確認し、必要に応じてインストール
+   - Solanaキーペアの存在を確認
+   - OREマイニングコンテナをビルドして起動
 
-## Managing the Mining Container
+## マイニングコンテナの管理
 
-- **View logs**:
+- **ログの表示**:
   ```bash
   docker-compose logs -f
   ```
 
-- **Stop mining**:
+- **マイニングの停止**:
   ```bash
   docker-compose down
   ```
 
-- **Restart mining**:
+- **マイニングの再起動**:
   ```bash
   docker-compose restart
   ```
 
-- **Check mining status**:
+- **マイニング状況の確認**:
   ```bash
   docker ps | grep ore-miner
   ```
 
-## Auto-start on Boot
+- **報酬状況の確認**:
+  ```bash
+  docker exec -it ore-miner ore account
+  ```
 
-To make the mining container start automatically when your system boots:
+- **手動で報酬を請求**:
+  ```bash
+  docker exec -it ore-miner ore claim all
+  ```
 
-1. Create a systemd service (Linux):
+## 起動時の自動起動設定
+
+システム起動時にマイニングコンテナが自動的に起動するようにするには：
+
+1. systemdサービスを作成（Linux）：
    ```bash
    sudo nano /etc/systemd/system/ore-miner.service
    ```
 
-2. Add the following content:
+2. 以下の内容を追加：
    ```
    [Unit]
    Description=ORE Mining Service
@@ -114,37 +118,37 @@ To make the mining container start automatically when your system boots:
    WantedBy=multi-user.target
    ```
 
-3. Enable and start the service:
+3. サービスを有効にして起動：
    ```bash
    sudo systemctl enable ore-miner.service
    sudo systemctl start ore-miner.service
    ```
 
-## Useful Links
+## トラブルシューティング
 
-- **Official Website**: [ore.supply](https://ore.supply/)
-- **Token Information**: [DEX Screener - ORE/SOL](https://dexscreener.com/solana/ggadtfbqdgjozz3fp7zrtofgwnrs4e6mczmmd5ni1)
-- **Discord Community**: Join the Discord for support and updates
+問題が発生した場合：
 
-## Troubleshooting
-
-If you encounter issues:
-
-1. Check if the container is running:
+1. コンテナが実行中か確認：
    ```bash
    docker ps | grep ore-miner
    ```
 
-2. Inspect the container logs:
+2. コンテナログの確認：
    ```bash
    docker-compose logs -f
    ```
 
-3. Try rebuilding the container:
+3. コンテナの再ビルド：
    ```bash
    docker-compose down
    docker-compose build --no-cache
    docker-compose up -d
    ```
 
-4. Make sure your Solana keypair is properly funded with SOL.
+4. Solanaキーペアに十分なSOLが入金されているか確認してください。
+
+## Useful Links
+
+- **公式ウェブサイト**: [ore.supply](https://ore.supply/)
+- **トークン情報**: [DEX Screener - ORE/SOL](https://dexscreener.com/solana/ggadtfbqdgjozz3fp7zrtofgwnrs4e6mczmmd5ni1)
+- **Discordコミュニティ**: サポートと最新情報についてはDiscordに参加してください
