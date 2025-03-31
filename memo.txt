@@ -1,0 +1,7 @@
+Wrote new keypair to id.json
+========================================================================
+pubkey: GiCuRFrokLVScXj4U3vi2akKAkYJ8mxxYzP46fmnazg3
+========================================================================
+Save this seed phrase and your BIP39 passphrase to recover your new keypair:
+else noble warm vast liquid exist cactus foil marine sadness lunar later
+========================================================================

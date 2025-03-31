@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  ore-miner:
+    build: .
+    container_name: ore-miner
+    restart: always
+    volumes:
+      # Mount your Solana keypair file
+      - ./id.json:/root/.config/solana/id.json
