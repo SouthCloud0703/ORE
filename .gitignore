@@ -1,0 +1,9 @@
+# Solana wallet keys and configuration
+id.json
+*.key
+*.pem
+*.key.json
+*.keypair
+*.wallet
+*.so
+.config/solana/
